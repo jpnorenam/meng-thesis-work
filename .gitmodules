@@ -1,0 +1,3 @@
+[submodule "dpsim"]
+	path = dpsim
+	url = https://github.com/sogno-platform/dpsim.git
