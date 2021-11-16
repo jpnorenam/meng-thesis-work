@@ -1,0 +1,57 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+#
+# @author: Juan Pablo Noreña <jpnorenam@unal.edu.co>
+#
+
+$preempt_rt = <<-SCRIPT
+dnf -y update
+# Install Linux firmware package needed by kernel-rt-core
+dnf install -y linux-firmware
+# Install Planet CCRMA's precompiled PREEMPT_RT patched Linux kernel
+rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
+rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-core-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
+rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-devel-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
+rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-modules-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
+rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-modules-extra-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
+SCRIPT
+
+$dpsim_rt_test = <<-SCRIPT
+
+SCRIPT
+
+ENV["VAGRANT_DEFAULT_PROVIDER"] = "libvirt"
+IMAGE_NAME = "fedora/33-cloud-base"
+
+Vagrant.configure("2") do |config|
+  config.ssh.insert_key = false
+  
+  config.vm.define "kvm-rt" do |kvm|
+    kvm.vm.box = IMAGE_NAME
+    
+    kvm.vm.network  :public_network,
+                    :dev => "virbr0"
+
+    kvm.vm.hostname = "dpsim-rt"
+
+    # dpsim.vm.synced_folder "../../", "/dpsim-rt",
+    #   type: "nfs",
+    #   linux__nfs_options: ['rw','no_subtree_check','all_squash','async']
+
+    kvm.vm.provider :libvirt do |libvirt|
+      libvirt.driver = "kvm"
+      libvirt.cpus   = 14
+      libvirt.cpuset = "25-39"
+      libvirt.memory = 16384
+      # libvirt.memorybacking :hugepages
+      # libvirt.memorybacking :nosharepages
+      # libvirt.memorybacking :locked
+      # libvirt.memorybacking :source, :type => "file"
+      # libvirt.memorybacking :access, :mode => "private"
+      # libvirt.memorybacking :allocation, :mode => "immediate"
+    end
+  end
+
+  config.vm.provision "shell", inline: $preempt_rt
+
+end
