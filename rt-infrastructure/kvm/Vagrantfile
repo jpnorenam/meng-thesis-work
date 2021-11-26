@@ -4,7 +4,7 @@
 # @author: Juan Pablo Noreña <jpnorenam@unal.edu.co>
 #
 
-$preempt_rt = <<-SCRIPT
+$fedora_rt = <<-SCRIPT
 dnf -y update
 # Install Linux firmware package needed by kernel-rt-core
 dnf install -y linux-firmware
@@ -14,10 +14,26 @@ rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x
 rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-devel-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
 rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-modules-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
 rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-modules-extra-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
+
+dnf install tuned-profiles-realtime
+echo "realtime" > /etc/tuned/active_profile
+echo "isolated_cpucores=2-11" >> /etc/tuned/realtime-variables.conf
+systemctl enable tuned && systemctl start tuned
 SCRIPT
 
-$dpsim_rt_test = <<-SCRIPT
+$build_dpsim = <<-SCRIPT
+sh dpsim/Packaging/Shell/install-fedora-deps.sh
 
+mkdir dpsim/build && cd dpsim/build
+
+cmake \
+    -DCIM_VERSION=CGMES_2.4.15_16FEB2016 \
+    -DWITH_PYTHON=OFF \
+    -DBUILD_SHARED_LIBS=ON \
+    -DDPSIM_BUILD_EXAMPLES=ON \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_LIBDIR=/usr/local/lib64 \
+    .. && make -j$(nproc) && cd ../..
 SCRIPT
 
 ENV["VAGRANT_DEFAULT_PROVIDER"] = "libvirt"
@@ -40,8 +56,8 @@ Vagrant.configure("2") do |config|
 
     kvm.vm.provider :libvirt do |libvirt|
       libvirt.driver = "kvm"
-      libvirt.cpus   = 14
-      libvirt.cpuset = "25-39"
+      libvirt.cpus   = 12
+      libvirt.cpuset = "27-39"
       libvirt.memory = 16384
       # libvirt.memorybacking :hugepages
       # libvirt.memorybacking :nosharepages
@@ -52,6 +68,6 @@ Vagrant.configure("2") do |config|
     end
   end
 
-  config.vm.provision "shell", inline: $preempt_rt
+  config.vm.provision "shell", inline: $fedora_rt
 
 end
