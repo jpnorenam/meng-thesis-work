@@ -16,10 +16,6 @@ rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x
 rpm -i http://ccrma.stanford.edu/planetccrma/mirror/fedora/linux/planetcore/30/x86_64/kernel-rt-modules-extra-5.4.24-100.rt15.1.fc30.ccrma.x86_64.rpm
 SCRIPT
 
-$dpsim_rt_test = <<-SCRIPT
-
-SCRIPT
-
 ENV["VAGRANT_DEFAULT_PROVIDER"] = "libvirt"
 IMAGE_NAME = "fedora/33-cloud-base"
 
