@@ -1,14 +1,16 @@
-# meng-thesis-work
+# Bare-Metal Machine
 
+## Setup Fedora for real-time
 ```
-git clone --recursive https://github.com/jpnorenam/meng-thesis-work.git
+sudo sh rt-infrastructure/bare-metal/install-fedora-rt.sh 25 39
 ```
 
-### Install DPsim dependencies
+## Install DPsim dependencies
 ```
 sudo sh dpsim/Packaging/Shell/install-fedora-deps.sh
 ```
-### Build DPsim
+
+## Build DPsim
 ```
 mkdir dpsim/build && cd dpsim/build
 
@@ -19,5 +21,10 @@ cmake \
     -DDPSIM_BUILD_EXAMPLES=ON \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_LIBDIR=/usr/local/lib64 \
-    .. && make -j$(nproc)
+    .. && make -j$(nproc) && cd ../..
+```
+
+## Run Real-Time test
+```
+sh rt-infrastructure/bare-metal/dpsim-rt-test.sh 8 31 39
 ```
